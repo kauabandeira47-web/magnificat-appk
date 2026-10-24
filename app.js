@@ -6,7 +6,7 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   };
   const makeId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-  let data = { tasks: [], diary: [], transactions: [], pastoral: [] };
+  let data = { tasks: [], diary: [], transactions: [], pastoral: [], roles: [] };
   let editingEntry = null;
   let entryExistingImages = [];
   let taskExistingImages = [];
@@ -83,7 +83,7 @@
   function openView(view) {
     document.querySelectorAll(".view").forEach(el => el.classList.toggle("active", el.id === `view-${view}`));
     document.querySelectorAll(".nav-link").forEach(el => el.classList.toggle("active", el.dataset.view === view));
-    const titles = {inicio:"Bom ter você aqui.",datas:"Datas e tarefas",diario:"Diário pessoal",financeiro:"Seu financeiro",pascom:"PASCOM",juventude:"Juventude Sagrada Face",nucleo:"Núcleo JSF",acolito:"Acólito"};
+    const titles = {inicio:"Bom ter você aqui.",calendario:"Calendário geral",roles:"Rolês",datas:"Datas e tarefas",diario:"Diário pessoal",financeiro:"Seu financeiro",pascom:"PASCOM",juventude:"Juventude Sagrada Face",roles:"Rolês",calendario:"Calendário geral",nucleo:"Núcleo JSF",acolito:"Acólito"};
     $("page-title").textContent = titles[view] || titles.inicio;
     if (view === "diario") $("entry-title").focus({preventScroll:true});
     window.scrollTo({top:0,behavior:"smooth"});
@@ -96,7 +96,7 @@
   const pastoralDialog = $("pastoral-dialog");
   const pastoralNames = {pascom:"PASCOM",juventude:"Juventude",nucleo:"Núcleo JSF",acolito:"Acólito"};
   function openPastoralDialog(area) {
-    $("pastoral-form").reset();
+    $("pastoral-form").reset(); $("pastoral-image-preview").innerHTML = ""; $("pastoral-images").value = "";
     $("pastoral-area").value = area;
     $("pastoral-date").value = today();
     $("pastoral-dialog-title").textContent = ({pascom:"Novo evento da PASCOM",juventude:"Novo evento da Juventude",nucleo:"Nova responsabilidade",acolito:"Registrar missa"}[area]);
@@ -112,15 +112,16 @@
   document.querySelectorAll("[data-add-pastoral]").forEach(btn => btn.addEventListener("click", () => openPastoralDialog(btn.dataset.addPastoral)));
   document.querySelectorAll(".month-filter").forEach(input => input.addEventListener("change", renderPastoral));
   $("filter-nucleo").addEventListener("change", renderPastoral);
-  $("pastoral-form").addEventListener("submit", e => {
+  $("pastoral-form").addEventListener("submit", async e => {
     e.preventDefault();
     const area = $("pastoral-area").value;
+    const images = await selectedImages("pastoral-images");
     data.pastoral.push({
       id: makeId(), area, title: $("pastoral-title").value.trim(),
       date: $("pastoral-date").value, time: $("pastoral-time").value,
       category: area==="nucleo" ? "Responsabilidade" : $("pastoral-category").value,
       status: area==="nucleo" ? $("pastoral-status").value : "pending",
-      location: $("pastoral-location").value.trim(), notes: $("pastoral-notes").value.trim(),
+      location: $("pastoral-location").value.trim(), notes: $("pastoral-notes").value.trim(), images,
       createdAt: Date.now()
     });
     pastoralDialog.close(); save(); toast("Registro pastoral salvo!");
@@ -144,6 +145,17 @@
   bindImagePicker("entry-images", "entry-image-preview", () => editingEntry ? (data.diary.find(x=>x.id===editingEntry)?.images || []) : []);
   bindImagePicker("task-images", "task-image-preview", () => []);
   bindImagePicker("transaction-images", "transaction-image-preview", () => []);
+  bindImagePicker("pastoral-images", "pastoral-image-preview", () => []);
+
+  $("add-role").addEventListener("click", () => { $("role-form").reset(); $("role-images").value=""; $("role-image-preview").innerHTML=""; $("role-date").value=today(); $("role-dialog").showModal(); $("role-title").focus(); });
+  bindImagePicker("role-images", "role-image-preview", () => []);
+  $("role-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const images = await selectedImages("role-images");
+    data.roles = data.roles || [];
+    data.roles.unshift({id:makeId(),title:$("role-title").value.trim(),date:$("role-date").value,time:$("role-time").value,location:$("role-location").value.trim(),people:$("role-people").value.trim(),notes:$("role-notes").value.trim(),images,createdAt:Date.now()});
+    $("role-dialog").close(); save(); toast("Rolê salvo!");
+  });
 
   $("task-form").addEventListener("submit", async e => {
     e.preventDefault();
@@ -236,7 +248,7 @@
   function pastoralMarkup(item) {
     const nucleus = item.area === "nucleo";
     const status = nucleus ? `<button class="check-button" data-pastoral-toggle="${item.id}" aria-label="Alternar status">${item.status==="done"?"✓":""}</button>` : "";
-    return `<div class="item-row ${item.status==="done"?"done":""}">${status}<div class="item-main"><div class="item-title">${escapeHTML(item.title)}</div><div class="item-meta">${dateLabel(item.date)}${item.time?` · ${escapeHTML(item.time)}`:""}${item.category?` · ${escapeHTML(item.category)}`:""}</div>${item.location?`<div class="item-meta">⌖ ${escapeHTML(item.location)}</div>`:""}${item.notes?`<div class="item-note">${escapeHTML(item.notes)}</div>`:""}${nucleus?`<span class="tag">${item.status==="done"?"Concluída":"Pendente"}</span>`:""}</div><div class="item-actions"><button class="mini-button" data-pastoral-delete="${item.id}">Excluir</button></div></div>`;
+    return `<div class="item-row ${item.status==="done"?"done":""}">${status}<div class="item-main"><div class="item-title">${escapeHTML(item.title)}</div><div class="item-meta">${dateLabel(item.date)}${item.time?` · ${escapeHTML(item.time)}`:""}${item.category?` · ${escapeHTML(item.category)}`:""}</div>${item.location?`<div class="item-meta">⌖ ${escapeHTML(item.location)}</div>`:""}${item.notes?`<div class="item-note">${escapeHTML(item.notes)}</div>`:""}${imageGallery(item.images)}${nucleus?`<span class="tag">${item.status==="done"?"Concluída":"Pendente"}</span>`:""}</div><div class="item-actions"><button class="mini-button" data-pastoral-delete="${item.id}">Excluir</button></div></div>`;
   }
   function renderPastoral() {
     const areas = ["pascom","juventude","nucleo","acolito"];
@@ -259,10 +271,47 @@
       $(`list-${area}`).innerHTML=items.length?items.map(pastoralMarkup).join(""):`<div class="empty-inline">${({pascom:"Nenhum evento da PASCOM cadastrado neste período.",juventude:"Nenhum evento da Juventude cadastrado neste período.",nucleo:"Nenhuma responsabilidade cadastrada ainda.",acolito:"Nenhuma missa registrada neste período."})[area]}</div>`;
     }
   }
+  let calendarCursor = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  let calendarSelected = today();
+  const calendarEvents = () => {
+    const events = [];
+    (data.tasks||[]).forEach(x=>events.push({date:x.date,title:x.title,time:x.time,area:"Tarefa",icon:"✓",notes:x.notes,images:x.images,done:x.done}));
+    (data.pastoral||[]).forEach(x=>events.push({date:x.date,title:x.title,time:x.time,area:({pascom:"PASCOM",juventude:"Juventude",nucleo:"Núcleo JSF",acolito:"Acólito"})[x.area]||"Pastoral",icon:({pascom:"📣",juventude:"🎉",nucleo:"◎",acolito:"✝️"})[x.area]||"✦",notes:x.notes,images:x.images,location:x.location}));
+    (data.roles||[]).forEach(x=>events.push({date:x.date,title:x.title,time:x.time,area:"Rolê",icon:"🎉",notes:[x.location,x.people,x.notes].filter(Boolean).join(" · "),images:x.images}));
+    (data.transactions||[]).forEach(x=>events.push({date:x.date,title:x.title,time:"",area:x.type==="income"?"Receita":"Despesa",icon:x.type==="income"?"＋":"−",notes:money(x.amount),images:x.images}));
+    (data.diary||[]).forEach(x=>events.push({date:x.date,title:x.title,time:"",area:"Diário",icon:"✎",notes:x.mood,images:x.images}));
+    return events.filter(x=>x.date);
+  };
+  function renderCalendar() {
+    const year=calendarCursor.getFullYear(), month=calendarCursor.getMonth();
+    $("calendar-month-title").textContent=calendarCursor.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+    const firstDay=new Date(year,month,1), offset=(firstDay.getDay()+6)%7, days=new Date(year,month+1,0).getDate();
+    const all=calendarEvents(); let cells=[];
+    for(let i=0;i<offset;i++) cells.push('<div class="calendar-cell blank"></div>');
+    for(let day=1;day<=days;day++){
+      const key=`${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      const count=all.filter(x=>x.date===key).length;
+      cells.push(`<button class="calendar-cell ${key===calendarSelected?"selected":""} ${key===today()?"is-today":""}" data-calendar-date="${key}"><span>${day}</span>${count?`<small>${count} ${count===1?"item":"itens"}</small>`:""}</button>`);
+    }
+    $("calendar-grid").innerHTML=cells.join("");
+    const selectedEvents=all.filter(x=>x.date===calendarSelected).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+    $("calendar-selected-title").textContent=new Date(...calendarSelected.split("-").map((v,i)=>i===1?Number(v)-1:Number(v))).toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+    $("calendar-day-list").innerHTML=selectedEvents.length?selectedEvents.map(x=>`<div class="item-row"><div class="item-main"><div class="item-title">${x.icon} ${escapeHTML(x.title)}</div><div class="item-meta">${x.time?escapeHTML(x.time)+" · ":""}${escapeHTML(x.area)}</div>${x.notes?`<div class="item-note">${escapeHTML(x.notes)}</div>`:""}${imageGallery(x.images)}</div></div>`).join(""):'<div class="empty-inline">Nenhum compromisso registrado neste dia.</div>';
+  }
+  $("calendar-prev").addEventListener("click",()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()-1,1);renderCalendar();});
+  $("calendar-next").addEventListener("click",()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+1,1);renderCalendar();});
+  $("calendar-today").addEventListener("click",()=>{calendarCursor=new Date();calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth(),1);calendarSelected=today();renderCalendar();});
+  $("calendar-grid").addEventListener("click",e=>{const btn=e.target.closest("[data-calendar-date]");if(btn){calendarSelected=btn.dataset.calendarDate;renderCalendar();}});
+  $("roles-month").addEventListener("change",renderRoles);
+  function renderRoles(){
+    const month=$("roles-month").value, items=(data.roles||[]).filter(x=>!month||(x.date||"").startsWith(month)).sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(a.time||"").localeCompare(b.time||""));
+    $("roles-list").innerHTML=items.length?items.map(x=>`<div class="item-row"><div class="item-main"><div class="item-title">🎉 ${escapeHTML(x.title)}</div><div class="item-meta">${dateLabel(x.date)}${x.time?" · "+escapeHTML(x.time):""}</div>${x.location?`<div class="item-meta">⌖ ${escapeHTML(x.location)}</div>`:""}${x.people?`<div class="item-meta">Com: ${escapeHTML(x.people)}</div>`:""}${x.notes?`<div class="item-note">${escapeHTML(x.notes)}</div>`:""}${imageGallery(x.images)}</div><div class="item-actions"><button class="mini-button" data-role-delete="${x.id}">Excluir</button></div></div>`).join(""):'<div class="empty-inline">Nenhum rolê cadastrado neste período. Planeje um momento com seus amigos!</div>';
+  }
+  document.addEventListener("click",e=>{const del=e.target.closest("[data-role-delete]");if(del&&confirm("Excluir este rolê?")){data.roles=(data.roles||[]).filter(x=>x.id!==del.dataset.roleDelete);save();toast("Rolê excluído.");}});
   function renderAll() {
     $("stat-tasks").textContent=data.tasks.filter(t=>!t.done).length;
     $("stat-diary").textContent=data.diary.length;
-    renderTasks(); renderDiary(); renderFinance(); renderPastoral();
+    renderTasks(); renderDiary(); renderFinance(); renderPastoral(); renderRoles(); renderCalendar();
   }
   renderAll();
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {

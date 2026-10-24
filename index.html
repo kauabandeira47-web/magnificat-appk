@@ -14,14 +14,16 @@
   <aside class="sidebar">
     <div class="brand"><img class="brand-logo" src="assets/magnificat-logo.jpg" alt="Logo Magnificat app"><div><strong>Magnificat app</strong><small>seu espaço, seu tempo</small></div></div>
     <nav aria-label="Navegação principal">
-      <button class="nav-link active" data-view="inicio"><span>⌂</span> Visão geral</button>
+      <button class="nav-link active" data-view="inicio"><span>🏠</span> Visão geral</button>
+      <button class="nav-link" data-view="calendario"><span>🗓️</span> Calendário geral</button>
       <button class="nav-link" data-view="datas"><span>▦</span> Datas e tarefas</button>
       <button class="nav-link" data-view="diario"><span>✎</span> Diário pessoal</button>
       <button class="nav-link" data-view="financeiro"><span>↗</span> Financeiro</button>
       <button class="nav-link" data-view="pascom"><span>✦</span> PASCOM</button>
       <button class="nav-link" data-view="juventude"><span>☼</span> Juventude</button>
       <button class="nav-link" data-view="nucleo"><span>◎</span> Núcleo JSF</button>
-      <button class="nav-link" data-view="acolito"><span>✝</span> Acólito</button>
+      <button class="nav-link" data-view="acolito"><span>✝️</span> Acólito</button>
+      <button class="nav-link" data-view="roles"><span>🎉</span> Rolês</button>
     </nav>
     <div class="sidebar-bottom"><div class="privacy-dot"></div><span>Seus dados ficam neste dispositivo</span></div>
   </aside>
@@ -46,6 +48,16 @@
         <article class="panel"><div class="panel-heading"><div><p class="eyebrow">NÃO DEIXE PARA DEPOIS</p><h3>Próximas datas</h3></div><button class="text-button" data-go="datas">Ver todas →</button></div><div id="home-tasks" class="empty-state">Tudo começa com um pequeno registro.<br>Adicione uma data ou tarefa.</div></article>
         <article class="panel"><div class="panel-heading"><div><p class="eyebrow">UM MOMENTO SEU</p><h3>Diário recente</h3></div><button class="text-button" data-go="diario">Abrir diário →</button></div><div id="home-diary" class="empty-state">Guarde aqui pensamentos, ideias e lembranças.</div></article>
       </div>
+    </section>
+
+    <section class="view" id="view-calendario">
+      <div class="section-intro"><div><p class="eyebrow">TUDO NO MESMO LUGAR</p><h2>Calendário geral</h2><p>Veja seus compromissos pessoais, financeiros e pastorais por dia.</p></div></div>
+      <div class="panel">
+        <div class="calendar-toolbar"><button class="secondary-button" id="calendar-prev" aria-label="Mês anterior">←</button><h3 id="calendar-month-title">Mês</h3><button class="secondary-button" id="calendar-next" aria-label="Próximo mês">→</button><button class="text-button" id="calendar-today">Hoje</button></div>
+        <div class="calendar-weekdays"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
+        <div id="calendar-grid" class="calendar-grid"></div>
+      </div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">AGENDA DO DIA</p><h3 id="calendar-selected-title">Selecione um dia</h3></div></div><div id="calendar-day-list" class="item-list"></div></div>
     </section>
 
     <section class="view" id="view-datas">
@@ -85,6 +97,11 @@
       <div class="panel"><div class="panel-heading"><div><p class="eyebrow">ESCALAS PESSOAIS</p><h3>Missas em que vou servir</h3></div><input class="month-filter" id="filter-acolito" type="month" aria-label="Filtrar mês de missas"></div><div class="item-list" id="list-acolito"></div></div>
     </section>
 
+    <section class="view" id="view-roles">
+      <div class="section-intro"><div><p class="eyebrow">TEMPO DE DESCANSAR E VIVER</p><h2>Rolês</h2><p>Guarde os planos e momentos de lazer com seus amigos.</p></div><button class="primary-button" id="add-role">＋ Novo rolê</button></div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">PLANOS E MEMÓRIAS</p><h3>Meus rolês</h3></div><input id="roles-month" type="month" aria-label="Filtrar mês dos rolês"></div><div id="roles-list" class="item-list"></div></div>
+    </section>
+
     <footer><span>Feito para uma vida mais organizada.</span><span>Meu Espaço · versão inicial</span></footer>
   </main>
 
@@ -101,9 +118,23 @@
     <div id="pastoral-status-wrap" class="hidden"><label for="pastoral-status">Status</label><select id="pastoral-status"><option value="pending">Pendente</option><option value="done">Concluída</option></select></div>
     <div id="pastoral-location-wrap"><label for="pastoral-location">Local (opcional)</label><input id="pastoral-location" maxlength="120" placeholder="Ex.: Matriz, salão paroquial…"></div>
     <label for="pastoral-notes">Observações (opcional)</label><textarea id="pastoral-notes" rows="3" placeholder="Detalhes, materiais, função ou combinados…"></textarea>
+    <label for="pastoral-images">Imagens (opcional)</label><input id="pastoral-images" type="file" accept="image/*" multiple><small class="upload-help">Anexe até 5 imagens a este registro.</small><div id="pastoral-image-preview" class="image-preview"></div>
     <button class="primary-button full-width" type="submit">Salvar registro</button>
   </form></dialog>
-\n  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+\n
+
+  <dialog id="role-dialog" class="modal"><form id="role-form" method="dialog">
+    <div class="modal-heading"><div><p class="eyebrow">LAZER E AMIZADES</p><h2>Novo rolê</h2></div><button class="icon-button" type="button" data-close="role-dialog" aria-label="Fechar">×</button></div>
+    <label for="role-title">Qual é o plano?</label><input id="role-title" maxlength="120" placeholder="Ex.: cinema com os amigos" required>
+    <div class="two-fields"><div><label for="role-date">Data</label><input id="role-date" type="date" required></div><div><label for="role-time">Horário</label><input id="role-time" type="time"></div></div>
+    <label for="role-location">Lugar (opcional)</label><input id="role-location" maxlength="120" placeholder="Ex.: shopping, parque…">
+    <label for="role-people">Com quem? (opcional)</label><input id="role-people" maxlength="180" placeholder="Nomes dos amigos">
+    <label for="role-notes">Detalhes (opcional)</label><textarea id="role-notes" rows="3" placeholder="Combinações, orçamento, o que levar…"></textarea>
+    <label for="role-images">Fotos ou referências (opcional)</label><input id="role-images" type="file" accept="image/*" multiple><div id="role-image-preview" class="image-preview"></div>
+    <button class="primary-button full-width" type="submit">Salvar rolê</button>
+  </form></dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
 </body>
 </html>

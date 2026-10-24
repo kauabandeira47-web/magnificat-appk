@@ -37,3 +37,16 @@ input[type="file"]{padding:9px;background:#fbfcfa;font-size:12px}
 }
 
 @media(max-width:760px){.welcome-logo-wrap{width:76px;height:76px;margin-right:0;margin-left:12px}.welcome-card{padding:24px}.brand-logo{width:40px;height:40px}}
+
+/* Melhorias: calendário geral, rolês e ícones */
+.nav-link span{font-size:17px;width:24px;display:inline-grid;place-items:center;flex-shrink:0}
+.calendar-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.calendar-toolbar h3{margin:0;text-transform:capitalize;flex:1;text-align:center;font-size:18px}
+.calendar-weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.calendar-weekdays span{text-align:center;color:var(--muted);font-size:11px;font-weight:700;padding:8px 0}
+.calendar-cell{min-height:66px;border:1px solid var(--line);border-radius:10px;background:#fffdf9;color:var(--ink);padding:8px;display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;min-width:0}
+.calendar-cell small{font-size:10px;color:var(--green);line-height:1.2}
+.calendar-cell.selected{border:2px solid var(--green);background:#f2e5d9}
+.calendar-cell.is-today span{font-weight:800;color:var(--green)}
+.calendar-cell.blank{background:transparent;border-color:transparent}
+@media(max-width:760px){.calendar-grid,.calendar-weekdays{gap:3px}.calendar-cell{min-height:48px;padding:5px;border-radius:7px;font-size:12px}.calendar-cell small{font-size:8px}.calendar-toolbar{gap:7px}.calendar-toolbar h3{font-size:15px}.calendar-toolbar .secondary-button{padding:9px 12px}}

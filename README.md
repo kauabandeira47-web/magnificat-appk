@@ -2,7 +2,7 @@
 
 Aplicativo web responsivo para organizar datas e tarefas, registrar um diário pessoal e acompanhar receitas e despesas. Foi pensado para iniciantes e pode ser publicado gratuitamente no GitHub Pages.
 
-## Identidade visual
+## Recursos adicionados\n\n- Calendário geral mensal que reúne tarefas, diário, lançamentos financeiros, eventos pastorais, missas e rolês.\n- Área Rolês para planejar passeios com amigos, local, participantes, observações e imagens.\n- Anexos de imagens nos registros pastorais e nos rolês.\n- Ícones visuais na navegação para identificar rapidamente cada área.\n\n## Identidade visual
 
 A logo do Magnificat app está aplicada na navegação e na tela inicial. Os ícones de instalação para celular e navegador também foram incluídos, com paleta bege e vinho.
 
